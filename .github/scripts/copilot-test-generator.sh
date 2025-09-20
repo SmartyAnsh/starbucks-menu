@@ -95,6 +95,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class ${class_name}Test {
@@ -113,7 +114,10 @@ class ${class_name}Test {
 
     @BeforeEach
     void setUp() {
-        // Setup test data
+        // Use lenient mode to avoid unnecessary stubbing exceptions
+        lenient().when(drinkItemRepository.findAll()).thenReturn(Collections.emptyList());
+        lenient().when(chatSessionRepository.save(any())).thenReturn(null);
+        lenient().when(chatMessageRepository.save(any())).thenReturn(null);
     }
 
     @Test
@@ -125,16 +129,15 @@ class ${class_name}Test {
     @Test
     @DisplayName("Should handle service operations with mocked dependencies")
     void testServiceOperations() {
-        // Arrange - Mock repository responses
-        when(drinkItemRepository.findAll()).thenReturn(Collections.emptyList());
-        
         // Act - Test service functionality
         // TODO: Add specific method calls for $class_name
+        // Example: List<?> result = ${class_name,,}.someMethod();
         
         // Assert - Verify behavior
         assertNotNull(${class_name,,});
         
-        // Verify interactions
+        // Note: Add mocking when you implement actual method calls
+        // when(drinkItemRepository.findAll()).thenReturn(Collections.emptyList());
         // verify(drinkItemRepository, times(1)).findAll();
     }
 }
