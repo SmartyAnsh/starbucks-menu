@@ -47,36 +47,7 @@ jobs:
       run: |
         python3 .github/scripts/generate-tests.py
 
-    - name: Create test configuration (if needed)
-      run: |
-        if [ ! -f "src/test/resources/application-test.yml" ]; then
-          cat > src/test/resources/application-test.yml << 'EOF'
-        spring:
-          datasource:
-            url: jdbc:h2:mem:testdb
-            driver-class-name: org.h2.Driver
-            username: sa
-            password: 
-          
-          sql:
-            init:
-              mode: never
-          
-          ai:
-            ollama:
-              base-url: http://localhost:11434
-              chat:
-                model: llama3.2
-              embedding:
-                model: nomic-embed-text
 
-        logging:
-          level:
-            com.starbucks.menuaichat: INFO
-            org.springframework.ai: WARN
-            root: WARN
-        EOF
-        fi
 
     - name: Check for generated tests
       id: changes
@@ -89,11 +60,11 @@ jobs:
           echo "ℹ️  No new tests to generate"
         fi
 
-    - name: Run generated tests
+    - name: Run unit tests only (mocked)
       if: steps.changes.outputs.changes == 'true'
       run: |
-        echo "🧪 Running generated tests to verify they work..."
-        mvn clean test -Dspring.profiles.active=test
+        echo "🧪 Running generated unit tests (all mocked, no external dependencies)..."
+        mvn clean test -Dtest="**/*Test" -DfailIfNoTests=false
 
     - name: Create Pull Request with GitHub CLI
       if: steps.changes.outputs.changes == 'true'

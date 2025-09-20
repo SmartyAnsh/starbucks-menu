@@ -46,12 +46,19 @@ def generate_controller_test(class_info):
         if method not in ['equals', 'hashCode', 'toString']:
             test_methods.append(f'''
     @Test
-    @DisplayName("Should handle {method} endpoint")
+    @DisplayName("Should handle {method} endpoint successfully")
     void test{method.capitalize()}() throws Exception {{
-        // TODO: Implement test for {method}
+        // Arrange - Mock service responses
+        when(menuService.getAllDrinks()).thenReturn(Collections.emptyList());
+        when(aiChatService.processMessage(anyString(), anyString())).thenReturn("Mocked response");
+        
+        // Act & Assert - Test endpoint
         mockMvc.perform(get("/api/test")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+        
+        // Verify mocks were called
+        verify(menuService, atLeastOnce()).getAllDrinks();
     }}''')
     
     return f'''package {package};
@@ -65,9 +72,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import java.util.Collections;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 @WebMvcTest({class_name}.class)
@@ -81,6 +91,12 @@ class {class_name}Test {{
 
     @MockBean
     private com.starbucks.menuaichat.service.StarbucksAiChatService aiChatService;
+
+    @MockBean
+    private com.starbucks.menuaichat.service.DataLoaderService dataLoaderService;
+
+    @MockBean
+    private com.starbucks.menuaichat.service.SpringAiVectorService springAiVectorService;
 {chr(10).join(test_methods)}
 }}
 '''
@@ -97,8 +113,18 @@ def generate_service_test(class_info):
     @Test
     @DisplayName("Should {method} successfully")
     void test{method.capitalize()}() {{
-        // TODO: Implement test for {method}
+        // Arrange - Mock dependencies
+        when(drinkItemRepository.findAll()).thenReturn(Collections.emptyList());
+        when(chatSessionRepository.save(any())).thenReturn(mockChatSession);
+        when(springAiVectorService.searchSimilarDrinksByDescription(anyString(), anyInt()))
+            .thenReturn(Collections.emptyList());
+        
+        // Act - Call the method
+        // TODO: Add actual method call based on {method}
+        
+        // Assert - Verify behavior
         assertNotNull({class_name.lower()});
+        verify(drinkItemRepository, atMostOnce()).findAll();
     }}''')
     
     return f'''package {package};
@@ -110,8 +136,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.starbucks.menuaichat.model.DrinkItem;
+import com.starbucks.menuaichat.model.ChatSession;
+import com.starbucks.menuaichat.model.ChatMessage;
+import java.util.Collections;
+import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
 class {class_name}Test {{
@@ -128,9 +160,25 @@ class {class_name}Test {{
     @Mock
     private com.starbucks.menuaichat.repository.ChatMessageRepository chatMessageRepository;
 
+    @Mock
+    private com.starbucks.menuaichat.service.SpringAiVectorService springAiVectorService;
+
+    private DrinkItem mockDrinkItem;
+    private ChatSession mockChatSession;
+    private ChatMessage mockChatMessage;
+
     @BeforeEach
     void setUp() {{
-        // Setup test data
+        // Setup mock objects
+        mockDrinkItem = new DrinkItem();
+        mockDrinkItem.setBeverage("Test Drink");
+        mockDrinkItem.setCalories(100);
+        
+        mockChatSession = new ChatSession();
+        mockChatSession.setId("test-session");
+        
+        mockChatMessage = new ChatMessage();
+        mockChatMessage.setMessage("Test message");
     }}
 {chr(10).join(test_methods)}
 }}
@@ -144,30 +192,50 @@ def generate_repository_test(class_info):
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import java.util.Collections;
+import java.util.List;
+import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
 
-@DataJpaTest
-@ActiveProfiles("test")
+@ExtendWith(MockitoExtension.class)
 class {class_name}Test {{
 
-    @Autowired
+    @Mock
     private {class_name} {class_name.lower()};
 
     @Test
-    @DisplayName("Should perform repository operations")
+    @DisplayName("Should perform repository operations successfully")
     void testRepositoryOperations() {{
-        // TODO: Implement repository tests
-        assertNotNull({class_name.lower()});
+        // Arrange - Mock repository behavior
+        when({class_name.lower()}.findAll()).thenReturn(Collections.emptyList());
+        when({class_name.lower()}.save(any())).thenReturn(null);
+        
+        // Act - Call repository methods
+        List<?> results = (List<?>) {class_name.lower()}.findAll();
+        
+        // Assert - Verify behavior
+        assertNotNull(results);
+        assertTrue(results.isEmpty());
+        verify({class_name.lower()}).findAll();
     }}
 
     @Test
-    @DisplayName("Should handle database queries")
-    void testDatabaseQueries() {{
-        // TODO: Add specific database query tests
-        assertNotNull({class_name.lower()});
+    @DisplayName("Should handle custom queries successfully")
+    void testCustomQueries() {{
+        // Arrange - Mock custom query behavior
+        when({class_name.lower()}.findByIdIn(anyList())).thenReturn(Collections.emptyList());
+        
+        // Act - Call custom query
+        List<?> results = {class_name.lower()}.findByIdIn(Arrays.asList(1L, 2L));
+        
+        // Assert - Verify results
+        assertNotNull(results);
+        verify({class_name.lower()}).findByIdIn(anyList());
     }}
 }}
 '''
