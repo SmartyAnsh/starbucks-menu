@@ -3,9 +3,6 @@ name: Auto Test Generation
 on:
   push:
     branches: [ master, develop ]
-    paths:
-      - 'src/main/java/**'
-      - 'pom.xml'
   pull_request:
     branches: [ master, develop ]
 
@@ -45,7 +42,6 @@ jobs:
 
     - name: Generate Unit Tests
       run: |
-        cd starbucks-menu
         python3 .github/scripts/generate-tests.py
 
     - name: Generate Integration Tests
@@ -162,7 +158,6 @@ jobs:
 
     - name: Run generated tests
       run: |
-        cd starbucks-menu
         mvn clean test -Dspring.profiles.active=test
 
     - name: Check for changes
@@ -237,7 +232,6 @@ jobs:
 
     - name: Run tests
       run: |
-        cd starbucks-menu
         mvn clean test -Dspring.profiles.active=test
 
     - name: Generate test report
