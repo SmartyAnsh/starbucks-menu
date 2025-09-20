@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starbucks AI Menu Assistant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .chat-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            color: #00704a;
+            margin-bottom: 30px;
+        }
+        .chat-messages {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #fafafa;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .user-message {
+            background-color: #00704a;
+            color: white;
+            margin-left: 50px;
+        }
+        .assistant-message {
+            background-color: #e8f5e8;
+            color: #333;
+            margin-right: 50px;
+        }
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #messageInput {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #sendButton {
+            padding: 10px 20px;
+            background-color: #00704a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #sendButton:hover {
+            background-color: #005a3a;
+        }
+        #sendButton:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <h1>☕ Starbucks AI Menu Assistant</h1>
+            <p>Ask me about drinks, nutrition, ingredients, or get personalized recommendations!</p>
+        </div>
+        
+        <div id="chatMessages" class="chat-messages"></div>
+        
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Ask about drinks, nutrition, or get recommendations..." />
+            <button id="sendButton">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let sessionId = null;
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        // Initialize chat session
+        async function initializeChat() {
+            try {
+                const response = await fetch('/api/chat/start', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                sessionId = data.sessionId;
+                addMessage('assistant', data.message);
+            } catch (error) {
+                addMessage('assistant', 'Sorry, I had trouble starting our conversation. Please refresh the page.');
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || !sessionId) return;
+
+            addMessage('user', message);
+            messageInput.value = '';
+            sendButton.disabled = true;
+            
+            addMessage('assistant', 'Thinking...', true);
+
+            try {
+                const response = await fetch('/api/chat/message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sessionId: sessionId,
+                        message: message
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Remove loading message
+                const loadingMessage = chatMessages.lastElementChild;
+                if (loadingMessage && loadingMessage.classList.contains('loading')) {
+                    loadingMessage.remove();
+                }
+                
+                if (data.error) {
+                    addMessage('assistant', 'Sorry, I encountered an error: ' + data.error);
+                } else {
+                    addMessage('assistant', data.response);
+                }
+            } catch (error) {
+                // Remove loading message
+                const loadingMessage = chatMessages.lastElementChild;
+                if (loadingMessage && loadingMessage.classList.contains('loading')) {
+                    loadingMessage.remove();
+                }
+                addMessage('assistant', 'Sorry, I had trouble processing your message. Please try again.');
+            } finally {
+                sendButton.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        // Add message to chat
+        function addMessage(sender, text, isLoading = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            if (isLoading) {
+                messageDiv.classList.add('loading');
+            }
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Initialize on page load
+        initializeChat();
+    </script>
+</body>
+</html>

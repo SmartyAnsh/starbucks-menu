@@ -1,0 +1,43 @@
+# Starbucks Menu AI Chat - Project Specific .gitignore
+
+# Maven build artifacts
+target/
+*.jar
+*.war
+
+# Spring Boot
+*.pid
+application-dev.yml
+application-local.yml
+
+# Logs (application generates logs/ directory)
+logs/
+*.log
+starbucks-menu.log
+
+# IDE Files
+.idea/
+*.iml
+.vscode/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Environment Variables & Sensitive Config
+.env
+.env.local
+application-prod.yml
+
+# Database credentials (if externalized)
+database.properties
+
+# JVM crash logs
+hs_err_pid*
+
+# Temporary files
+*.tmp
+
+# CSV data backups (if generated)
+src/main/resources/csv/*.backup
+src/main/resources/csv/*_backup.csv
