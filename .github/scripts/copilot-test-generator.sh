@@ -38,8 +38,8 @@ $source_code
 
 Generate only the complete test class code with package $package and class name ${class_name}Test."
 
-    # Use GitHub Copilot CLI to generate the test
-    gh copilot suggest "$prompt" > temp_copilot_response.txt 2>&1
+    # Use GitHub Copilot CLI to generate the test (non-interactive)
+    gh copilot suggest -p "$prompt" > temp_copilot_response.txt 2>&1
     
     # Check if Copilot responded successfully
     if [ $? -eq 0 ] && [ -s temp_copilot_response.txt ]; then
