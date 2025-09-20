@@ -2,12 +2,12 @@ name: Auto Test Generation
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ master, develop ]
     paths:
       - 'src/main/java/**'
       - 'pom.xml'
   pull_request:
-    branches: [ main, develop ]
+    branches: [ master, develop ]
 
 env:
   JAVA_VERSION: '17'
