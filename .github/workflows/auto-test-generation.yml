@@ -65,7 +65,20 @@ jobs:
         # Try to install Copilot CLI extension (may not be available in public beta)
         if gh extension install github/gh-copilot 2>/dev/null; then
           echo "✅ GitHub Copilot CLI extension installed"
-          echo "COPILOT_AVAILABLE=true" >> $GITHUB_ENV
+          # Probe Copilot CLI usability (Actions' GITHUB_TOKEN usually lacks Copilot entitlement)
+          echo "🔎 Probing Copilot CLI availability with a non-interactive check..."
+          if output=$(gh copilot suggest -p "Return only word OK" 2>&1); then
+            if echo "$output" | grep -qi "^OK$"; then
+              echo "✅ Copilot CLI responded successfully"
+              echo "COPILOT_AVAILABLE=true" >> $GITHUB_ENV
+            else
+              echo "⚠️  Copilot CLI responded but not as expected. Marking unavailable. Output: $output"
+              echo "COPILOT_AVAILABLE=false" >> $GITHUB_ENV
+            fi
+          else
+            echo "⚠️  Copilot CLI probe failed (likely not authenticated/entitled in CI). Falling back to templates."
+            echo "COPILOT_AVAILABLE=false" >> $GITHUB_ENV
+          fi
         else
           echo "⚠️  GitHub Copilot CLI not available, will use smart templates"
           echo "COPILOT_AVAILABLE=false" >> $GITHUB_ENV

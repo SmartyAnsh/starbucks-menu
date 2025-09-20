@@ -69,6 +69,10 @@ Generate only the complete test class code with package $package and class name 
         return 0
     else
         echo "⚠️  Copilot failed for $class_name, falling back to template..."
+        if [ -f temp_copilot_response.txt ]; then
+            echo "ℹ️  Copilot error/output for $class_name (first 50 lines):"
+            head -n 50 temp_copilot_response.txt || true
+        fi
         rm -f temp_copilot_response.txt
         return 1
     fi
