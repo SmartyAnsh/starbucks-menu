@@ -96,27 +96,25 @@ jobs:
         
         # Create PR using GitHub CLI
         gh pr create \
-          --title "🤖 Auto-generated Unit Tests" \
-          --body "## 🤖 Auto-generated Unit Tests ✅
+          --title "🤖 Auto-generated Service Tests" \
+          --body "## 🤖 Auto-generated Service Tests ✅
 
-        This PR contains automatically generated unit tests for the Starbucks Menu AI Chat application.
+        This PR contains automatically generated unit tests for Service classes in the Starbucks Menu AI Chat application.
 
         **✅ All generated tests have been verified to compile and run successfully!**
 
         ### What's included:
-        - ✅ Unit tests for all service classes
-        - ✅ Unit tests for all controller classes  
-        - ✅ Unit tests for all repository classes
-        - ✅ Unit tests for model classes
-        - ✅ Test configuration files
+        - ✅ Unit tests for all @Service classes
+        - ✅ Proper mocking of repository dependencies
+        - ✅ Test scaffolding ready for customization
 
         ### Generated test files:
         \`\`\`
-        src/test/java/com/starbucks/menuaichat/
-        ├── controller/
-        ├── service/
-        ├── repository/
-        └── model/
+        src/test/java/com/starbucks/menuaichat/service/
+        ├── MenuServiceTest.java
+        ├── StarbucksAiChatServiceTest.java
+        ├── DataLoaderServiceTest.java
+        └── SpringAiVectorServiceTest.java
         \`\`\`
 
         ### Quality assurance:
