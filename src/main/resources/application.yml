@@ -29,10 +29,10 @@ server:
 
 logging:
   level:
-    com.starbucks.menuaichat: DEBUG
-    org.springframework.ai: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.jdbc: DEBUG
+    com.starbucks.menuaichat: INFO
+    org.springframework.ai: INFO
+    org.springframework.web: INFO
+    org.springframework.jdbc: INFO
     root: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
