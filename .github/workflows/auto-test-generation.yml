@@ -14,6 +14,9 @@ jobs:
   generate-tests:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
+    permissions:
+      contents: write
+      pull-requests: write
     
     steps:
     - name: Checkout code
@@ -92,51 +95,71 @@ jobs:
         echo "🧪 Running generated tests to verify they work..."
         mvn clean test -Dspring.profiles.active=test
 
-    - name: Create Pull Request
+    - name: Create Pull Request with GitHub CLI
       if: steps.changes.outputs.changes == 'true'
-      uses: peter-evans/create-pull-request@v5
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: "feat: Add auto-generated unit tests"
-        title: "🤖 Auto-generated Unit Tests"
-        body: |
-          ## 🤖 Auto-generated Unit Tests ✅
-          
-          This PR contains automatically generated unit tests for the Starbucks Menu AI Chat application.
-          
-          **✅ All generated tests have been verified to compile and run successfully!**
-          
-          ### What's included:
-          - ✅ Unit tests for all service classes
-          - ✅ Unit tests for all controller classes  
-          - ✅ Unit tests for all repository classes
-          - ✅ Unit tests for model classes
-          - ✅ Test configuration files
-          
-          ### Generated test files:
-          ```
-          src/test/java/com/starbucks/menuaichat/
-          ├── controller/
-          ├── service/
-          ├── repository/
-          └── model/
-          ```
-          
-          ### Quality assurance:
-          - ✅ Tests compile without errors
-          - ✅ Tests run successfully 
-          - ✅ Proper mocking structure in place
-          - ✅ Test configuration verified
-          
-          ### Next steps:
-          1. Review the generated tests
-          2. Implement the TODO sections with actual business logic
-          3. Add more specific test cases as needed
-          4. Customize assertions for your use cases
-          
-          **Note**: Tests are generated as working scaffolding - ready to be customized with your specific logic!
-        branch: auto-generated-tests
-        delete-branch: true
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Configure git
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # Create and switch to new branch
+        BRANCH_NAME="auto-generated-tests-$(date +%Y%m%d-%H%M%S)"
+        git checkout -b "$BRANCH_NAME"
+        
+        # Add and commit changes
+        git add src/test/
+        git commit -m "feat: Add auto-generated unit tests
+
+        ✅ Generated unit tests for all Java classes
+        ✅ Tests verified to compile and run successfully
+        ✅ Includes proper mocking structure
+        ✅ Ready for customization with business logic"
+        
+        # Push branch
+        git push origin "$BRANCH_NAME"
+        
+        # Create PR using GitHub CLI
+        gh pr create \
+          --title "🤖 Auto-generated Unit Tests" \
+          --body "## 🤖 Auto-generated Unit Tests ✅
+
+        This PR contains automatically generated unit tests for the Starbucks Menu AI Chat application.
+
+        **✅ All generated tests have been verified to compile and run successfully!**
+
+        ### What's included:
+        - ✅ Unit tests for all service classes
+        - ✅ Unit tests for all controller classes  
+        - ✅ Unit tests for all repository classes
+        - ✅ Unit tests for model classes
+        - ✅ Test configuration files
+
+        ### Generated test files:
+        \`\`\`
+        src/test/java/com/starbucks/menuaichat/
+        ├── controller/
+        ├── service/
+        ├── repository/
+        └── model/
+        \`\`\`
+
+        ### Quality assurance:
+        - ✅ Tests compile without errors
+        - ✅ Tests run successfully 
+        - ✅ Proper mocking structure in place
+        - ✅ Test configuration verified
+
+        ### Next steps:
+        1. Review the generated tests
+        2. Implement the TODO sections with actual business logic
+        3. Add more specific test cases as needed
+        4. Customize assertions for your use cases
+
+        **Note**: Tests are generated as working scaffolding - ready to be customized with your specific logic!" \
+          --base master \
+          --head "$BRANCH_NAME"
 
   run-tests:
     runs-on: ubuntu-latest
