@@ -128,8 +128,12 @@ jobs:
         
         # Create PR using GitHub CLI (with fallback)
         echo "🔄 Attempting to create pull request..."
+        # Determine base branch dynamically (default branch of the repo)
+        BASE_BRANCH=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name || echo "master")
+        echo "Using base branch: $BASE_BRANCH"
         if gh pr create \
           --title "🤖 Auto-Generated Service Tests" \
+          --base "$BASE_BRANCH" \
           --body "## 🤖 Auto-Generated Service Tests ✅
 
         This PR contains automatically generated unit tests for Service classes.
@@ -199,5 +203,5 @@ jobs:
       if: success() || failure()
       with:
         name: Maven Tests
-        path: 'starbucks-menu/target/surefire-reports/*.xml'
+        path: 'target/surefire-reports/*.xml'
         reporter: java-junit
