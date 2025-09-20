@@ -39,7 +39,7 @@ $source_code
 Generate only the complete test class code with package $package and class name ${class_name}Test."
 
     # Use GitHub Copilot CLI to generate the test
-    echo "$prompt" | gh copilot suggest -t shell > temp_copilot_response.txt 2>&1
+    gh copilot suggest "$prompt" > temp_copilot_response.txt 2>&1
     
     # Check if Copilot responded successfully
     if [ $? -eq 0 ] && [ -s temp_copilot_response.txt ]; then
@@ -147,17 +147,20 @@ is_service_class() {
     grep -q "@Service" "$file"
 }
 
-# Authenticate with GitHub (using the token from environment)
-echo "🔐 Authenticating with GitHub..."
-echo "$GITHUB_TOKEN" | gh auth login --with-token
+# Check authentication status
+echo "🔐 Checking GitHub authentication..."
+if ! gh auth status > /dev/null 2>&1; then
+    echo "❌ GitHub authentication failed"
+    exit 1
+fi
 
-# Check if Copilot is available
-if ! gh copilot --help > /dev/null 2>&1; then
-    echo "❌ GitHub Copilot CLI not available. Using fallback templates."
-    USE_COPILOT=false
-else
+# Check if Copilot is available from environment variable
+if [ "$COPILOT_AVAILABLE" = "true" ]; then
     echo "✅ GitHub Copilot CLI is ready!"
     USE_COPILOT=true
+else
+    echo "⚠️  GitHub Copilot CLI not available. Using smart templates."
+    USE_COPILOT=false
 fi
 
 # Process only service files

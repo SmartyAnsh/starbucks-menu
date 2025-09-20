@@ -43,22 +43,30 @@ jobs:
         mkdir -p src/test/java/com/starbucks/menuaichat/{controller,service,repository,model}
         mkdir -p src/test/resources
 
-    - name: Install GitHub Copilot CLI
+    - name: Setup GitHub CLI and Check Copilot
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # Install GitHub CLI if not present
-        if ! command -v gh &> /dev/null; then
-          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-          sudo apt update
-          sudo apt install gh
-        fi
+        # GitHub CLI is pre-installed in GitHub Actions runners
+        echo "✅ GitHub CLI is available: $(gh --version)"
         
-        # Install Copilot CLI extension
-        gh extension install github/gh-copilot
+        # Authenticate with GitHub
+        echo "$GH_TOKEN" | gh auth login --with-token
+        
+        # Try to install Copilot CLI extension (may not be available in public beta)
+        if gh extension install github/gh-copilot 2>/dev/null; then
+          echo "✅ GitHub Copilot CLI extension installed"
+          echo "COPILOT_AVAILABLE=true" >> $GITHUB_ENV
+        else
+          echo "⚠️  GitHub Copilot CLI not available, will use smart templates"
+          echo "COPILOT_AVAILABLE=false" >> $GITHUB_ENV
+        fi
 
     - name: Generate Tests with GitHub Copilot
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COPILOT_AVAILABLE: ${{ env.COPILOT_AVAILABLE }}
       run: |
         chmod +x .github/scripts/copilot-test-generator.sh
         .github/scripts/copilot-test-generator.sh
