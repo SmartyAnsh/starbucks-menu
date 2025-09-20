@@ -25,6 +25,9 @@ class MenuServiceTest {
     @Mock
     private DrinkItemRepository drinkItemRepository;
 
+    @Mock
+    private SpringAiVectorService springAiVectorService;
+
     private DrinkItem testDrink;
 
     @BeforeEach
@@ -33,18 +36,18 @@ class MenuServiceTest {
         testDrink.setBeverage("Test Latte");
         testDrink.setBeverageCategory("Coffee");
         testDrink.setCalories(150);
-        testDrink.setCaffeineMs(95);
+        testDrink.setCaffeine(95);
     }
 
     @Test
-    @DisplayName("Should find all drinks successfully")
-    void testFindAllDrinks() {
+    @DisplayName("Should get all drinks successfully")
+    void testGetAllDrinks() {
         // Arrange
         List<DrinkItem> expectedDrinks = Arrays.asList(testDrink);
         when(drinkItemRepository.findAll()).thenReturn(expectedDrinks);
 
         // Act
-        List<DrinkItem> result = menuService.findAllDrinks();
+        List<DrinkItem> result = menuService.getAllDrinks();
 
         // Assert
         assertNotNull(result);
@@ -72,20 +75,32 @@ class MenuServiceTest {
     }
 
     @Test
-    @DisplayName("Should find low calorie drinks successfully")
-    void testFindLowCalorieDrinks() {
+    @DisplayName("Should format drinks for AI successfully")
+    void testFormatDrinksForAI() {
         // Arrange
-        int maxCalories = 200;
-        List<DrinkItem> expectedDrinks = Arrays.asList(testDrink);
-        when(drinkItemRepository.findByCaloriesLessThanEqual(maxCalories)).thenReturn(expectedDrinks);
+        List<DrinkItem> drinks = Arrays.asList(testDrink);
 
         // Act
-        List<DrinkItem> result = menuService.findLowCalorieDrinks(maxCalories);
+        String result = menuService.formatDrinksForAI(drinks);
 
         // Assert
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertTrue(result.get(0).getCalories() <= maxCalories);
-        verify(drinkItemRepository).findByCaloriesLessThanEqual(maxCalories);
+        assertTrue(result.contains("Test Latte"));
+        assertTrue(result.contains("Coffee"));
+        assertTrue(result.contains("150 cal"));
+    }
+
+    @Test
+    @DisplayName("Should handle empty drinks list for AI formatting")
+    void testFormatDrinksForAIEmpty() {
+        // Arrange
+        List<DrinkItem> emptyDrinks = Arrays.asList();
+
+        // Act
+        String result = menuService.formatDrinksForAI(emptyDrinks);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("No drinks found matching the criteria.", result);
     }
 }

@@ -58,10 +58,20 @@ public class MenuService {
         logger.debug("🔍 Spring AI vector search for drinks by description: '{}'", query);
         List<Document> documents = springAiVectorService.searchSimilarDrinksByDescription(query, limit);
         
+        if (documents.isEmpty()) {
+            logger.info("📊 No similar drinks found by description for query: '{}'", query);
+            return List.of();
+        }
+        
         List<Long> drinkIds = documents.stream()
             .map(doc -> Long.parseLong(doc.getMetadata().get("drink_id").toString()))
             .distinct()
             .toList();
+        
+        if (drinkIds.isEmpty()) {
+            logger.info("📊 No valid drink IDs found in vector search results");
+            return List.of();
+        }
         
         List<DrinkItem> results = drinkItemRepository.findByIdIn(drinkIds);
         logger.info("📊 Spring AI found {} similar drinks by description", results.size());
@@ -72,10 +82,20 @@ public class MenuService {
         logger.debug("🔍 Spring AI vector search for drinks by nutrition: '{}'", query);
         List<Document> documents = springAiVectorService.searchSimilarDrinksByNutrition(query, limit);
         
+        if (documents.isEmpty()) {
+            logger.info("📊 No similar drinks found by nutrition for query: '{}'", query);
+            return List.of();
+        }
+        
         List<Long> drinkIds = documents.stream()
             .map(doc -> Long.parseLong(doc.getMetadata().get("drink_id").toString()))
             .distinct()
             .toList();
+        
+        if (drinkIds.isEmpty()) {
+            logger.info("📊 No valid drink IDs found in nutrition vector search results");
+            return List.of();
+        }
         
         List<DrinkItem> results = drinkItemRepository.findByIdIn(drinkIds);
         logger.info("📊 Spring AI found {} similar drinks by nutrition", results.size());
