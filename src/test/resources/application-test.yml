@@ -1,0 +1,33 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  sql:
+    init:
+      mode: embedded
+      schema-locations: classpath:test-schema.sql
+  
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: llama3.2
+      embedding:
+        model: nomic-embed-text
+    vectorstore:
+      pgvector:
+        initialize-schema: false  # Disable for tests
+
+server:
+  port: 0  # Random port for tests
+
+logging:
+  level:
+    com.starbucks.menuaichat: INFO
+    org.springframework.ai: WARN
+    org.springframework.web: WARN
+    org.springframework.jdbc: WARN
+    root: WARN
