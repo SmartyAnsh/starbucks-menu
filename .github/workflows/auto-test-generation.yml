@@ -43,9 +43,33 @@ jobs:
         mkdir -p src/test/java/com/starbucks/menuaichat/{controller,service,repository,model}
         mkdir -p src/test/resources
 
-    - name: Generate Unit Tests
+    - name: Install Ollama and Dependencies
       run: |
-        python3 .github/scripts/generate-tests.py
+        # Install Ollama
+        curl -fsSL https://ollama.com/install.sh | sh
+        
+        # Install jq for JSON parsing
+        sudo apt-get update && sudo apt-get install -y jq
+        
+        # Start Ollama in background
+        ollama serve &
+        OLLAMA_PID=$!
+        echo "OLLAMA_PID=$OLLAMA_PID" >> $GITHUB_ENV
+        
+        # Wait for Ollama to start
+        echo "⏳ Waiting for Ollama to start..."
+        sleep 15
+        
+        # Pull the model
+        echo "📥 Pulling Llama 3.2 model..."
+        ollama pull llama3.2
+        
+        echo "✅ Ollama setup complete!"
+
+    - name: Generate Unit Tests with AI
+      run: |
+        chmod +x .github/scripts/ai-test-generator.sh
+        .github/scripts/ai-test-generator.sh
 
 
 
@@ -65,6 +89,14 @@ jobs:
       run: |
         echo "🧪 Running generated unit tests (all mocked, no external dependencies)..."
         mvn clean test -Dtest="**/*Test" -DfailIfNoTests=false
+
+    - name: Cleanup Ollama
+      if: always()
+      run: |
+        if [ ! -z "$OLLAMA_PID" ]; then
+          kill $OLLAMA_PID || true
+        fi
+        pkill ollama || true
 
     - name: Create Pull Request with GitHub CLI
       if: steps.changes.outputs.changes == 'true'
