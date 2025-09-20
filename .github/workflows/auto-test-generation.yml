@@ -43,10 +43,25 @@ jobs:
         mkdir -p src/test/java/com/starbucks/menuaichat/{controller,service,repository,model}
         mkdir -p src/test/resources
 
-    - name: Generate Unit Tests (Smart Templates)
+    - name: Install GitHub Copilot CLI
       run: |
-        chmod +x .github/scripts/smart-test-generator.sh
-        .github/scripts/smart-test-generator.sh
+        # Install GitHub CLI if not present
+        if ! command -v gh &> /dev/null; then
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh
+        fi
+        
+        # Install Copilot CLI extension
+        gh extension install github/gh-copilot
+
+    - name: Generate Tests with GitHub Copilot
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        chmod +x .github/scripts/copilot-test-generator.sh
+        .github/scripts/copilot-test-generator.sh
 
 
 
@@ -96,26 +111,39 @@ jobs:
         
         # Create PR using GitHub CLI
         gh pr create \
-          --title "🤖 Auto-generated Service Tests" \
-          --body "## 🤖 Auto-generated Service Tests ✅
+          --title "🤖 Copilot-Generated Service Tests" \
+          --body "## 🤖 GitHub Copilot-Generated Service Tests ✅
 
-        This PR contains automatically generated unit tests for Service classes in the Starbucks Menu AI Chat application.
+        This PR contains automatically generated unit tests for Service classes using **GitHub Copilot CLI**.
 
         **✅ All generated tests have been verified to compile and run successfully!**
 
+        ### 🧠 Powered by GitHub Copilot:
+        - 🤖 **AI-generated tests** that understand your code context
+        - 🎯 **Smart test scenarios** based on actual business logic
+        - 🔧 **Proper mocking patterns** for Spring Boot services
+        - 📝 **Realistic test data** and assertions
+
         ### What's included:
         - ✅ Unit tests for all @Service classes
-        - ✅ Proper mocking of repository dependencies
-        - ✅ Test scaffolding ready for customization
+        - ✅ Context-aware test scenarios
+        - ✅ Proper dependency mocking
+        - ✅ JUnit 5 + Mockito best practices
 
         ### Generated test files:
         \`\`\`
         src/test/java/com/starbucks/menuaichat/service/
-        ├── MenuServiceTest.java
-        ├── StarbucksAiChatServiceTest.java
-        ├── DataLoaderServiceTest.java
-        └── SpringAiVectorServiceTest.java
+        ├── MenuServiceTest.java          (Copilot-generated)
+        ├── StarbucksAiChatServiceTest.java (Copilot-generated)
+        ├── DataLoaderServiceTest.java    (Copilot-generated)
+        └── SpringAiVectorServiceTest.java (Copilot-generated)
         \`\`\`
+
+        ### 🚀 Why Copilot-generated tests are better:
+        - **Understands your domain** (Starbucks, menu, chat, AI)
+        - **Generates realistic scenarios** (not just generic templates)
+        - **Follows your coding patterns** and conventions
+        - **Creates meaningful assertions** based on business logic
 
         ### Quality assurance:
         - ✅ Tests compile without errors
