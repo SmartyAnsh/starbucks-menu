@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [ master, develop ]
 
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+  checks: write
+  issues: write
+
 env:
   JAVA_VERSION: '17'
   MAVEN_OPTS: '-Xmx1024m'
@@ -17,6 +24,10 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: read
+      checks: write
+      issues: write
+      repository-projects: read
     
     steps:
     - name: Checkout code
@@ -115,57 +126,48 @@ jobs:
         # Push branch
         git push origin "$BRANCH_NAME"
         
-        # Create PR using GitHub CLI
-        gh pr create \
-          --title "🤖 Copilot-Generated Service Tests" \
-          --body "## 🤖 GitHub Copilot-Generated Service Tests ✅
+        # Create PR using GitHub CLI (with fallback)
+        echo "🔄 Attempting to create pull request..."
+        if gh pr create \
+          --title "🤖 Auto-Generated Service Tests" \
+          --body "## 🤖 Auto-Generated Service Tests ✅
 
-        This PR contains automatically generated unit tests for Service classes using **GitHub Copilot CLI**.
+        This PR contains automatically generated unit tests for Service classes.
 
         **✅ All generated tests have been verified to compile and run successfully!**
 
-        ### 🧠 Powered by GitHub Copilot:
-        - 🤖 **AI-generated tests** that understand your code context
-        - 🎯 **Smart test scenarios** based on actual business logic
-        - 🔧 **Proper mocking patterns** for Spring Boot services
-        - 📝 **Realistic test data** and assertions
-
         ### What's included:
         - ✅ Unit tests for all @Service classes
-        - ✅ Context-aware test scenarios
-        - ✅ Proper dependency mocking
+        - ✅ Proper dependency mocking with lenient mode
         - ✅ JUnit 5 + Mockito best practices
+        - ✅ Ready-to-customize test scaffolding
 
         ### Generated test files:
         \`\`\`
         src/test/java/com/starbucks/menuaichat/service/
-        ├── MenuServiceTest.java          (Copilot-generated)
-        ├── StarbucksAiChatServiceTest.java (Copilot-generated)
-        ├── DataLoaderServiceTest.java    (Copilot-generated)
-        └── SpringAiVectorServiceTest.java (Copilot-generated)
+        ├── MenuServiceTest.java
+        ├── StarbucksAiChatServiceTest.java  
+        ├── DataLoaderServiceTest.java
+        └── SpringAiVectorServiceTest.java
         \`\`\`
-
-        ### 🚀 Why Copilot-generated tests are better:
-        - **Understands your domain** (Starbucks, menu, chat, AI)
-        - **Generates realistic scenarios** (not just generic templates)
-        - **Follows your coding patterns** and conventions
-        - **Creates meaningful assertions** based on business logic
-
-        ### Quality assurance:
-        - ✅ Tests compile without errors
-        - ✅ Tests run successfully 
-        - ✅ Proper mocking structure in place
-        - ✅ Test configuration verified
 
         ### Next steps:
         1. Review the generated tests
-        2. Implement the TODO sections with actual business logic
-        3. Add more specific test cases as needed
-        4. Customize assertions for your use cases
+        2. Implement the TODO sections with actual method calls
+        3. Add specific assertions for your business logic
+        4. Customize test scenarios as needed
 
-        **Note**: Tests are generated as working scaffolding - ready to be customized with your specific logic!" \
+        **Note**: Tests are generated as working scaffolding - customize with your specific logic!" \
           --base master \
-          --head "$BRANCH_NAME"
+          --head "$BRANCH_NAME"; then
+          echo "✅ Pull request created successfully!"
+        else
+          echo "⚠️  PR creation failed due to permissions, but branch '$BRANCH_NAME' has been pushed."
+          echo "📝 You can manually create a PR at:"
+          echo "   https://github.com/${{ github.repository }}/pull/new/$BRANCH_NAME"
+          echo ""
+          echo "🎉 Test generation completed successfully!"
+        fi
 
   run-tests:
     runs-on: ubuntu-latest
