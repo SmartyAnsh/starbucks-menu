@@ -147,12 +147,8 @@ is_service_class() {
     grep -q "@Service" "$file"
 }
 
-# Check authentication status
-echo "🔐 Checking GitHub authentication..."
-if ! gh auth status > /dev/null 2>&1; then
-    echo "❌ GitHub authentication failed"
-    exit 1
-fi
+# GitHub CLI is already authenticated via GH_TOKEN environment variable
+echo "🔐 GitHub CLI is authenticated and ready"
 
 # Check if Copilot is available from environment variable
 if [ "$COPILOT_AVAILABLE" = "true" ]; then

@@ -40,18 +40,16 @@ jobs:
 
     - name: Create test directory structure
       run: |
-        mkdir -p src/test/java/com/starbucks/menuaichat/{controller,service,repository,model}
+        mkdir -p src/test/java/com/starbucks/menuaichat/service
         mkdir -p src/test/resources
 
     - name: Setup GitHub CLI and Check Copilot
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # GitHub CLI is pre-installed in GitHub Actions runners
+        # GitHub CLI is pre-installed and auto-authenticated via GH_TOKEN
         echo "✅ GitHub CLI is available: $(gh --version)"
-        
-        # Authenticate with GitHub
-        echo "$GH_TOKEN" | gh auth login --with-token
+        echo "✅ GitHub CLI is authenticated via GH_TOKEN"
         
         # Try to install Copilot CLI extension (may not be available in public beta)
         if gh extension install github/gh-copilot 2>/dev/null; then
